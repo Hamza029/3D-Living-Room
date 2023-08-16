@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>3D TV Room</title>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <script src="scripts/three.js"></script>
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+      // projectionMatrix, modelViewMatrix, position -> passed in from Three.js
+      varying vec3 v_color;
+      void main()	{
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          v_color = vec3(0.0859,0.0859,0.0859);
+      }
+    </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+      uniform float u_time;
+      varying vec3 v_color;
+      void main()	{
+          gl_FragColor = vec4(v_color, 1.0);
+      }
+    </script>
+
+  <script>
+    var vec = new THREE.Vector3(); // create once and reuse
+    var pos = new THREE.Vector3(); // create once and reuse
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xffffff);
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.z = 15;
+
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+
+    const render = () => {
+      renderer.render(scene, camera);
+    };
+
+    const create_room = () => {
+      // creates the room and returns mesh object
+      const geometry = new THREE.BoxGeometry(40, 15, 40);
+
+      const material = new THREE.MeshStandardMaterial({
+        map: new THREE.TextureLoader().load("./images/wall1-1.jpg"),
+      });
+
+      // material[3] = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+      console.log(material[0]);
+
+      material.side = THREE.BackSide;
+      const room = new THREE.Mesh(geometry, material);
+
+      const floor_geometry = new THREE.PlaneGeometry( 40, 40 );
+      const floor_material = new THREE.MeshBasicMaterial( {
+        // color: 0xffff00,
+        map: new THREE.TextureLoader().load("./images/floor1-1.jpg"),
+        side: THREE.DoubleSide} );
+      const floor = new THREE.Mesh(floor_geometry, floor_material);
+
+      // floor.rotation.set(90,90,0);
+      floor.rotation.x -= .031;
+      floor.rotation.x += 77;
+      floor.position.set(0,-7.49,0);
+
+      room.attach(floor);
+
+      return room;
+    };
+
+    const create_tv = () => {
+      // creates the tv and returns mesh object
+
+      // tv body
+      const tv_body_geometry = new THREE.BoxGeometry(7.1, 4.1, 0.3);
+
+      // const tv_body_material = new THREE.ShaderMaterial({
+      //     uniforms: THREE.UniformsLib['lights'],
+      //     vertexShader: document.getElementById('vertexShader').textContent,
+      //     fragmentShader: document.getElementById('fragmentShader').textContent,
+      //     lights: true
+      // });
+
+      const tv_body_material = new THREE.MeshStandardMaterial({
+        color: 0x161616,
+      });
+
+      
+
+
+      const tv_body = new THREE.Mesh(tv_body_geometry, tv_body_material);
+      // tv screen with texture
+      const tv_screen_geometry = new THREE.PlaneGeometry(6.7, 3.7);
+      const tv_screen_texture = new THREE.TextureLoader().load(
+        "./images/Wallpaper.png",
+        render
+      );
+      const tv_screen_material = new THREE.MeshBasicMaterial({
+        map: tv_screen_texture,
+      });
+      const tv_screen = new THREE.Mesh(
+        tv_screen_geometry,
+        tv_screen_material
+      );
+
+      tv_body.position.z = -0.16;
+      tv_body.attach(tv_screen);
+      
+      return tv_body;
+    };
+
+    const create_aqr = () => {
+  // creates the aqr and returns mesh object
+  const geometry = new THREE.BoxGeometry(10, 5, 3);
+
+  const material = new THREE.MeshStandardMaterial({
+    // color: 0x784c00,
+    map: new THREE.TextureLoader().load("./images/aqr_texture.jpg")
+  });
+
+  const aqr = new THREE.Mesh(geometry, material);
+  aqr.position.set(0, -5, -18); // Adjust position as needed
+
+
+      const aqr_screen_geometry = new THREE.PlaneGeometry(9.5, 4.5);
+      const aqr_screen_texture = new THREE.TextureLoader().load(
+        "./images/wallpaper.png",
+        render
+      );
+      const aqr_screen_material = new THREE.MeshBasicMaterial({
+        map: aqr_screen_texture,
+      });
+      const aqr_screen = new THREE.Mesh(
+        aqr_screen_geometry,
+        aqr_screen_material
+      );
+
+      aqr_screen.position.z = -16.4;
+      aqr_screen.position.y -= 5;
+      aqr.attach(aqr_screen);
+
+  return aqr;
+};
+
+
+  const create_sofaa = () => {
+      // creates the room and returns mesh object
+      const geometry = new THREE.BoxGeometry(10, 4, 1);
+
+      const material = new THREE.MeshStandardMaterial({
+        map: new THREE.TextureLoader().load("./images/sofa_back.jpg"),
+        // color: 0x784c00,
+      });
+
+      const geometry2 = new THREE.BoxGeometry(10, 2, 3);
+
+      const material2 = new THREE.MeshStandardMaterial({
+        map: new THREE.TextureLoader().load("./images/sofa_back.jpg"),
+        // color: 0x784c00,
+      });
+
+      // material.side = THREE.BackSide;
+      const sofaa = new THREE.Mesh(geometry, material);
+
+      const sofaa2 = new THREE.Mesh(geometry2, material2);
+
+      sofaa.position.z -= 19;
+      sofaa2.position.z -= 17;
+      sofaa2.position.y -= 1;
+
+      sofaa.attach(sofaa2)
+
+      return sofaa;
+    };
+
+    const geometry = new THREE.PlaneGeometry( 7, 7 );
+    const material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("./images/wall3.jpg"), side: THREE.DoubleSide} );
+    const plane = new THREE.Mesh( geometry, material );
+    scene.add( plane );
+    plane.position.z -= 19;
+    plane.position.x += 15;
+
+
+    const geometry1 = new THREE.PlaneGeometry( 6, 6 );
+    const material1 = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("./images/night/4IUm-0.png"), side: THREE.DoubleSide} );
+    const plane2 = new THREE.Mesh( geometry1, material1 );
+    scene.add( plane2 );
+    plane2.position.z -= 19;
+    plane2.position.x += 15;
+  
+
+
+
+    const create_tv_stand = () => {
+      // creates tv stand and attached table and returns mesh object
+      var geometry = new THREE.CylinderGeometry(0.3, 0.3, 8, 50);
+      var material = new THREE.MeshStandardMaterial({
+        map: new THREE.TextureLoader().load(
+          "./images/stand_texture.jpg",
+          render
+        ),
+      });
+      const cylinder1 = new THREE.Mesh(geometry, material);
+      cylinder1.position.y -= 4;
+
+      geometry = new THREE.CylinderGeometry(0.3, 0.3, 3.5, 50);
+      const cylinder2 = new THREE.Mesh(geometry, material);
+      cylinder2.position.y -= 6.4;
+      cylinder2.position.x -= 3;
+      cylinder1.attach(cylinder2);
+
+      const cylinder3 = cylinder2.clone();
+      cylinder3.position.y -= 4;
+      cylinder3.position.x += 6;
+      cylinder1.attach(cylinder3);
+
+      const cylinder4 = cylinder2.clone();
+      cylinder4.position.y -= 4;
+      cylinder4.position.x += 6;
+      cylinder4.position.z += 2;
+      cylinder1.attach(cylinder4);
+
+      const cylinder5 = cylinder2.clone();
+      cylinder5.position.y -= 4;
+      cylinder5.position.z += 2;
+      cylinder1.attach(cylinder5);
+
+      geometry = new THREE.CylinderGeometry(0.3, 0.3, 2, 50);
+      const cylinder6 = new THREE.Mesh(geometry, material);
+      cylinder6.position.x = 0;
+      cylinder6.position.y = 0.15;
+      cylinder6.position.z = 0.5;
+      cylinder6.rotation.x += 3.14156 / 2; // 90 degree
+      cylinder1.attach(cylinder6);
+
+      var material = new THREE.MeshStandardMaterial({
+        color: 0x3f3f3f,
+        transparent: true,
+        opacity: 0.7,
+      });
+      geometry = new THREE.BoxGeometry(8, 0.2, 4);
+      const base1 = new THREE.Mesh(geometry, material);
+      base1.position.y -= 5;
+      base1.position.z += 1;
+      cylinder1.attach(base1);
+
+      const base2 = base1.clone();
+      base2.position.y -= 6;
+      cylinder1.attach(base2);
+
+      return cylinder1;
+    };
+
+    const create_light = () => {
+      // creates the light used for this scene, we're using pointlight
+      bulbLight = new THREE.PointLight(0xffffff, 1, 100, 2);
+      bulbLight.castShadow = true
+      return bulbLight;
+    };
+
+    const tv = create_tv();
+    tv.castShadow = true;
+    tv.receiveShadow = true;
+    scene.add(tv);
+    tv.position.z = 1.5;
+
+    const aqr = create_aqr();
+    aqr.castShadow = true;
+    aqr.receiveShadow = true;
+    scene.add(aqr);
+
+    const sofa = create_sofaa();
+    sofa.castShadow = true;
+    sofa.receiveShadow = true;
+    scene.add(sofa);
+
+    sofa.position.y -= 5.4;
+    sofa.position.x += 18;
+    sofa.position.z += 15;
+    sofa.rotation.y -= 1.6
+
+    // aqr.position.z += 0;
+    aqr.position.x -= 10;
+    aqr.rotation = (0, 180, 0);
+
+    // tv.position.set(0, 0, 0); // Adjust position as needed
+
+
+
+    const tv_stand = create_tv_stand();
+    tv_stand.castShadow = true;
+    tv_stand.receiveShadow = true;
+    (tv_stand.children).forEach(elem => {
+      elem.castShadow = true;
+      elem.receiveShadow = true;
+    });
+    scene.add(tv_stand);
+
+    tv_stand.attach(tv);
+    // tv_stand.attach(aqr);
+
+    tv_stand.position.z -= 5;
+
+    const room = create_room();
+    room.receiveShadow = true;
+    scene.add(room);
+
+    room.attach(tv_stand)
+
+    var bulbLight = create_light();
+    bulbLight.position.set(0, 2, 0);
+    bulbLight.castShadow = true;
+    scene.add(bulbLight);
+
+    render();
+    
+    // room limits
+    const limitLoX = -19;
+    const limitHiX = 19;
+    const limitLoY = -7;
+    const limitHiY = 7;
+    const limitLoZ = -19;
+    const limitHiZ = 19;
+
+    const isInsideRoom = (x, y, z) => {
+      // returns true if x,y,z positions located inside the room
+      return (
+        x >= limitLoX &&
+        x <= limitHiX &&
+        y >= limitLoY &&
+        y <= limitHiY &&
+        z >= limitLoZ &&
+        z <= limitHiZ
+      );
+    };
+
+    document.addEventListener("mousemove", function (event) {
+      // uses mouse movement to move light position
+      vec.set(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1,
+        0.5
+      );
+
+      vec.unproject(camera);
+
+      vec.sub(camera.position).normalize();
+
+      var distance = -camera.position.z / vec.z;
+      pos.copy(camera.position).add(vec.multiplyScalar(distance));
+
+      if (isInsideRoom(pos.x, pos.y, pos.z)) {
+        bulbLight.position.x = pos.x;
+        bulbLight.position.y = pos.y;
+        bulbLight.position.z = pos.z;
+        renderer.render(scene, camera);
+      }
+    });
+
+    curr = tv.rotation.x;
+
+    document.onkeydown = (e) => {
+      // moves the camera inside the room based on keypress events
+      e = e || window.event;
+
+      if (e.keyCode == "38") {
+        // up arrow
+
+        var direction = new THREE.Vector3();
+        camera.getWorldDirection(direction);
+        distance = 0.3;
+        var move = direction.multiplyScalar(distance);
+        
+        if (
+          isInsideRoom(
+            move.x + camera.position.x,
+            move.y + camera.position.y,
+            move.z + camera.position.z
+          )
+        )
+          camera.position.add(move);
+      } else if (e.keyCode == "40") {
+        // down arrow
+        var direction = new THREE.Vector3();
+        camera.getWorldDirection(direction);
+        distance = -0.3;
+        var move = direction.multiplyScalar(distance);
+        if (
+          isInsideRoom(
+            move.x + camera.position.x,
+            move.y + camera.position.y,
+            move.z + camera.position.z
+          )
+        )
+          camera.position.add(move);
+      } else if (e.keyCode == "37") {
+        // left arrow
+        camera.rotation.y += 0.1;
+      } else if (e.keyCode == "39") {
+        // right arrow
+        camera.rotation.y -= 0.1;
+      } else if (e.key == "z") {
+        // right arrow
+        if(tv.rotation.x >= curr-.5)
+          tv.rotation.x -= 0.1;
+        // tv_stand.rotation.y -= 0.1;
+        // sofa.rotation.y -= 0.1;
+      } else if (e.key == "x") {
+        // right arrow
+        if(tv.rotation.x <= curr+.5)
+          tv.rotation.x += 0.1;
+        // tv_stand.rotation.y -= 0.1;
+        // sofa.rotation.y -= 0.1;
+      }
+
+      renderer.render(scene, camera);
+    };
+
+    var tv_anime_frame = 0;
+    var aqr_frame = 0;
+    var plane2_frame=0;
+    var plane2_frame_num =0;
+    var skip = 0;
+    var aqr_frame_num = 0;
+    const animate_tv_screen = () => {
+      // animates the tv screens, changes texture on it.
+      if (skip == 3) {
+        // the change was too fast that some animation frame needed to be skipped
+        tv_anime_frame = (tv_anime_frame + 1) % 68;
+        skip = 0;
+      } else {
+        skip++;
+      }
+
+      aqr_frame_num = (aqr_frame_num + 1) % 5;
+      if(aqr_frame_num==0) {
+        aqr_frame = (aqr_frame+1)%70;
+      }
+
+      plane2_frame_num = (plane2_frame_num + 1) % 5;
+      if(plane2_frame_num==0) {
+        plane2_frame = (plane2_frame+1)%12;
+      }
+
+      requestAnimationFrame(animate_tv_screen);
+
+      var imgSrc = "./images/lion/QbI-" + tv_anime_frame + ".png";
+      var aqrSrc = "./images/aqr/aqr-" + aqr_frame + ".png";
+      var winSrc = "./images/night/4IUm-" + plane2_frame + ".png";
+      tv.children[0].material.map = new THREE.TextureLoader().load(
+        imgSrc,
+        render
+      );
+      aqr.children[0].material.map = new THREE.TextureLoader().load(
+        aqrSrc,
+        render
+      );
+      plane2.material.map = new THREE.TextureLoader().load(
+        winSrc,
+        render
+      );
+
+    };
+
+    animate_tv_screen();
+  </script>
+</body>
+
+</html>
